@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TransactionType {
+  BUY
+  SELL
+  DEPOSIT
+  WITHDRAWAL
+}
+
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(150)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  balance      Decimal  @default(0.00) @db.Decimal(15, 2)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp()
+
+  transactions       Transaction[]
+  portfolioPositions PortfolioPosition[]
+
+  @@map("users")
+}
+
+model Asset {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticker       String   @unique @db.VarChar(20)
+  name         String   @db.VarChar(100)
+  type         String   @db.VarChar(30)
+  currentPrice Decimal  @map("current_price") @db.Decimal(15, 2)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+
+  transactions       Transaction[]
+  portfolioPositions PortfolioPosition[]
+
+  @@map("assets")
+}
+
+model Transaction {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String          @map("user_id") @db.Uuid
+  assetId     String?         @map("asset_id") @db.Uuid
+  type        TransactionType
+  quantity    Decimal         @default(0) @db.Decimal(15, 4)
+  unitPrice   Decimal         @default(0.00) @map("unit_price") @db.Decimal(15, 2)
+  totalAmount Decimal         @map("total_amount") @db.Decimal(15, 2)
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamp()
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset? @relation(fields: [assetId], references: [id])
+
+  @@map("transactions")
+}
+
+model PortfolioPosition {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  assetId      String   @map("asset_id") @db.Uuid
+  quantity     Decimal  @default(0) @db.Decimal(15, 4)
+  averagePrice Decimal  @default(0.00) @map("average_price") @db.Decimal(15, 2)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  @@unique([userId, assetId], name: "UNIQUE_USER_ASSET")
+  @@map("portfolio_positions")
+}
