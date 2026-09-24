@@ -16,11 +16,11 @@ export function validate(
     }
 
     if (schemas.params) {
-      request.params = schemas.params.parse(request.params);
+      schemas.params.parse(request.params);
     }
 
     if (schemas.query) {
-      request.query = schemas.query.parse(request.query);
+      schemas.query.parse(request.query);
     }
 
     next();
