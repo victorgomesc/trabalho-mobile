@@ -1,25 +1,28 @@
 export interface Position {
   id: string;
-  usuario_id: string;
-  ativo_id: string;
-  quantidade: number;
-  preco_medio: number;
-  atualizado_em: Date;
+  userId: string;
+  assetId: string;
+  quantity: number;
+  averagePrice: number;
+  updatedAt: Date;
 }
 
 export interface CreatePositionDTO {
-  ativo_id: string;
-  quantidade: number;
-  preco_medio: number;
+  assetId: string;
+  quantity: number;
+  averagePrice: number;
 }
 
 export interface UpdatePositionDTO {
-  quantidade?: number;
-  preco_medio?: number;
+  quantity?: number;
+  averagePrice?: number;
 }
 
 export interface PositionWithAsset extends Position {
-  codigo: string;
-  ativo_nome: string;
-  preco_atual: number;
+  ticker: string;
+  assetName: string;
+  currentPrice: number;
+  investedValue: number;
+  currentValue: number;
+  profitLoss: number;
 }

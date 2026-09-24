@@ -10,34 +10,41 @@ export const positionParamsSchema = z.object({
 });
 
 export const createPositionSchema = z.object({
-  ativo_id: z.string().uuid("ID do ativo inválido"),
+  assetId: z
+    .string()
+    .uuid("ID do ativo inválido"),
 
-  quantidade: z.coerce
+  quantity: z.coerce
     .number()
     .positive("A quantidade deve ser maior que zero"),
 
-  preco_medio: z.coerce
+  averagePrice: z.coerce
     .number()
     .positive("O preço médio deve ser maior que zero"),
 });
 
 export const updatePositionSchema = z
   .object({
-    quantidade: z.coerce
+    quantity: z.coerce
       .number()
-      .positive("A quantidade deve ser maior que zero")
+      .positive(
+        "A quantidade deve ser maior que zero",
+      )
       .optional(),
 
-    preco_medio: z.coerce
+    averagePrice: z.coerce
       .number()
-      .positive("O preço médio deve ser maior que zero")
+      .positive(
+        "O preço médio deve ser maior que zero",
+      )
       .optional(),
   })
   .refine(
     (data) =>
-      data.quantidade !== undefined ||
-      data.preco_medio !== undefined,
+      data.quantity !== undefined ||
+      data.averagePrice !== undefined,
     {
-      message: "Informe pelo menos um campo para atualização",
+      message:
+        "Informe pelo menos um campo para atualização",
     },
   );

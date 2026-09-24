@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { database } from "../config/database";
-import { positionsRoutes } from "../modules/positions/positions.routes";
+import { prisma } from "../config/database";
 import { portfolioRoutes } from "../modules/portfolio/portfolio.routes";
+import { positionsRoutes } from "../modules/positions/positions.routes";
 
 export const routes = Router();
 
@@ -14,7 +14,7 @@ routes.get("/", (_request, response) => {
 });
 
 routes.get("/health", async (_request, response) => {
-  await database.query("SELECT 1");
+  await prisma.$queryRaw`SELECT 1`;
 
   response.status(200).json({
     status: "ok",

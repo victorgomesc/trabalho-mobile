@@ -1,51 +1,68 @@
-import { database } from "../../config/database";
+import { Prisma } from "@prisma/client";
 
-import {
-  PortfolioSummary,
-  RawPortfolioSummary,
-} from "./portfolio.types";
+import { prisma } from "../../config/database";
+
+import { PortfolioBaseSummary } from "./portfolio.types";
 
 export class PortfolioRepository {
   async getSummaryByUser(
     userId: string,
-  ): Promise<Omit<PortfolioSummary, "rentabilidade">> {
-    const result = await database.query<RawPortfolioSummary>(
-      `
-      SELECT
-        COALESCE(
-          SUM(pc.quantidade * pc.preco_medio),
-          0
-        ) AS total_investido,
+  ): Promise<PortfolioBaseSummary> {
+    const positions =
+      await prisma.portfolioPosition.findMany({
+        where: {
+          userId,
+        },
+        include: {
+          asset: {
+            select: {
+              currentPrice: true,
+            },
+          },
+        },
+      });
 
-        COALESCE(
-          SUM(pc.quantidade * a.preco_atual),
-          0
-        ) AS valor_atual,
+    let totalInvested =
+      new Prisma.Decimal(0);
 
-        COALESCE(
-          SUM(
-            pc.quantidade *
-            (a.preco_atual - pc.preco_medio)
-          ),
-          0
-        ) AS lucro_prejuizo,
+    let currentValue =
+      new Prisma.Decimal(0);
 
-        COUNT(pc.id)::int AS quantidade_ativos
-      FROM posicoes_carteira pc
-      INNER JOIN ativos a
-        ON a.id = pc.ativo_id
-      WHERE pc.usuario_id = $1
-      `,
-      [userId],
-    );
+    for (const position of positions) {
+      const invested =
+        position.quantity.mul(
+          position.averagePrice,
+        );
 
-    const summary = result.rows[0];
+      const current =
+        position.quantity.mul(
+          position.asset.currentPrice,
+        );
+
+      totalInvested =
+        totalInvested.add(invested);
+
+      currentValue =
+        currentValue.add(current);
+    }
+
+    const profitLoss =
+      currentValue.sub(totalInvested);
 
     return {
-      total_investido: Number(summary.total_investido),
-      valor_atual: Number(summary.valor_atual),
-      lucro_prejuizo: Number(summary.lucro_prejuizo),
-      quantidade_ativos: summary.quantidade_ativos,
+      totalInvested: Number(
+        totalInvested.toFixed(2),
+      ),
+
+      currentValue: Number(
+        currentValue.toFixed(2),
+      ),
+
+      profitLoss: Number(
+        profitLoss.toFixed(2),
+      ),
+
+      assetCount: positions.length,
     };
   }
 }

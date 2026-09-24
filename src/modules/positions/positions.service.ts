@@ -1,4 +1,5 @@
 import { PositionsRepository } from "./positions.repository";
+
 import {
   CreatePositionDTO,
   UpdatePositionDTO,
@@ -8,16 +9,25 @@ export class PositionsService {
   private positionsRepository: PositionsRepository;
 
   constructor() {
-    this.positionsRepository = new PositionsRepository();
+    this.positionsRepository =
+      new PositionsRepository();
   }
 
   async list(userId: string) {
-    return this.positionsRepository.findAllByUser(userId);
+    return this.positionsRepository.findAllByUser(
+      userId,
+    );
   }
 
-  async findById(id: string, userId: string) {
+  async findById(
+    id: string,
+    userId: string,
+  ) {
     const position =
-      await this.positionsRepository.findById(id, userId);
+      await this.positionsRepository.findById(
+        id,
+        userId,
+      );
 
     if (!position) {
       throw new Error("Posição não encontrada");
@@ -32,7 +42,7 @@ export class PositionsService {
   ) {
     const assetExists =
       await this.positionsRepository.assetExists(
-        data.ativo_id,
+        data.assetId,
       );
 
     if (!assetExists) {
@@ -42,7 +52,7 @@ export class PositionsService {
     const existingPosition =
       await this.positionsRepository.findByUserAndAsset(
         userId,
-        data.ativo_id,
+        data.assetId,
       );
 
     if (existingPosition) {
@@ -51,7 +61,10 @@ export class PositionsService {
       );
     }
 
-    return this.positionsRepository.create(userId, data);
+    return this.positionsRepository.create(
+      userId,
+      data,
+    );
   }
 
   async update(
@@ -73,7 +86,10 @@ export class PositionsService {
     return position;
   }
 
-  async delete(id: string, userId: string) {
+  async delete(
+    id: string,
+    userId: string,
+  ) {
     const deleted =
       await this.positionsRepository.delete(
         id,
