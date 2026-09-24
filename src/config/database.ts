@@ -1,10 +1,3 @@
-import { Pool } from "pg";
-import { env } from "./env";
+import { PrismaClient } from "@prisma/client";
 
-export const database = new Pool({
-  connectionString: env.DATABASE_URL,
-});
-
-database.on("error", (error) => {
-  console.error("Erro inesperado na conexão com o banco:", error);
-});
+export const prisma = new PrismaClient();

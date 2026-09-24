@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { database } from "../config/database";
+import { prisma } from "../config/database";
+import { assetsRoutes } from "../modules/assets/assets.routes";
+import { portfolioRoutes } from "../modules/portfolio/portfolio.routes";
+import { positionsRoutes } from "../modules/positions/positions.routes";
+import { authRoutes } from "../modules/auth/auth.routes";
+import { usersRoutes } from "../modules/users/users.routes";
 
 export const routes = Router();
 
@@ -12,7 +17,7 @@ routes.get("/", (_request, response) => {
 });
 
 routes.get("/health", async (_request, response) => {
-  await database.query("SELECT 1");
+  await prisma.$queryRaw`SELECT 1`;
 
   response.status(200).json({
     status: "ok",
@@ -21,8 +26,11 @@ routes.get("/health", async (_request, response) => {
   });
 });
 
+routes.use("/auth", authRoutes);
+routes.use("/users", usersRoutes);
+// routes.use("/assets", assetsRoutes);
 // routes.use("/auth", authRoutes);
 // routes.use("/users", usersRoutes);
-// routes.use("/assets", assetsRoutes);
-// routes.use("/positions", positionsRoutes);
-// routes.use("/portfolio", portfolioRoutes);
+routes.use("/assets", assetsRoutes);
+routes.use("/positions", positionsRoutes);
+routes.use("/portfolio", portfolioRoutes);

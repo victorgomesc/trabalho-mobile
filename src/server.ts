@@ -1,22 +1,17 @@
 import { app } from "./app";
-import { database } from "./config/database";
+import { prisma } from "./config/database";
 import { env } from "./config/env";
 
 async function startServer(): Promise<void> {
   try {
-    await database.query("SELECT 1");
+    await prisma.$connect();
+    console.log("Conexão com o banco de dados estabelecida.");
 
     app.listen(env.PORT, () => {
-      console.log(
-        `API executando em http://localhost:${env.PORT}`,
-      );
+      console.log(`API executando em http://localhost:${env.PORT}`);
     });
   } catch (error) {
-    console.error(
-      "Não foi possível iniciar a aplicação:",
-      error,
-    );
-
+    console.error("Não foi possível iniciar a aplicação:", error);
     process.exit(1);
   }
 }
