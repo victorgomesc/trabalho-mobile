@@ -1,13 +1,14 @@
-import { NextFunction, Request, Response } from "express";
+import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 
 import { env } from "../config/env";
 
-export function auth(
-  request: Request,
-  response: Response,
-  next: NextFunction,
-): void {
+export const auth: RequestHandler<
+  any,
+  any,
+  any,
+  any
+> = (request, response, next): void => {
   const authorization = request.headers.authorization;
 
   if (!authorization) {
@@ -55,4 +56,4 @@ export function auth(
       error: "Token de autenticação inválido ou expirado",
     });
   }
-}
+};

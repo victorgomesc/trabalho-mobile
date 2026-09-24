@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import { PositionsService } from "./positions.service";
+
 import {
   CreatePositionDTO,
   UpdatePositionDTO,
@@ -8,23 +9,26 @@ import {
 
 const positionsService = new PositionsService();
 
-export interface UserParams {
-  userId: string;
-}
-
 export interface PositionParams {
-  userId: string;
   id: string;
 }
 
 export class PositionsController {
   async list(
-    request: Request<UserParams>,
+    request: Request,
     response: Response,
   ): Promise<void> {
-    const { userId } = request.params;
+    if (!request.user) {
+      response.status(401).json({
+        error: "Usuário não autenticado",
+      });
 
-    const positions = await positionsService.list(userId);
+      return;
+    }
+
+    const positions = await positionsService.list(
+      request.user.id,
+    );
 
     response.status(200).json(positions);
   }
@@ -33,24 +37,42 @@ export class PositionsController {
     request: Request<PositionParams>,
     response: Response,
   ): Promise<void> {
-    const { userId, id } = request.params;
+    if (!request.user) {
+      response.status(401).json({
+        error: "Usuário não autenticado",
+      });
+
+      return;
+    }
+
+    const { id } = request.params;
 
     const position = await positionsService.findById(
       id,
-      userId,
+      request.user.id,
     );
 
     response.status(200).json(position);
   }
 
   async create(
-    request: Request<UserParams, unknown, CreatePositionDTO>,
+    request: Request<
+      Record<string, string>,
+      unknown,
+      CreatePositionDTO
+    >,
     response: Response,
   ): Promise<void> {
-    const { userId } = request.params;
+    if (!request.user) {
+      response.status(401).json({
+        error: "Usuário não autenticado",
+      });
+
+      return;
+    }
 
     const position = await positionsService.create(
-      userId,
+      request.user.id,
       request.body,
     );
 
@@ -65,11 +87,19 @@ export class PositionsController {
     >,
     response: Response,
   ): Promise<void> {
-    const { userId, id } = request.params;
+    if (!request.user) {
+      response.status(401).json({
+        error: "Usuário não autenticado",
+      });
+
+      return;
+    }
+
+    const { id } = request.params;
 
     const position = await positionsService.update(
       id,
-      userId,
+      request.user.id,
       request.body,
     );
 
@@ -80,9 +110,20 @@ export class PositionsController {
     request: Request<PositionParams>,
     response: Response,
   ): Promise<void> {
-    const { userId, id } = request.params;
+    if (!request.user) {
+      response.status(401).json({
+        error: "Usuário não autenticado",
+      });
 
-    await positionsService.delete(id, userId);
+      return;
+    }
+
+    const { id } = request.params;
+
+    await positionsService.delete(
+      id,
+      request.user.id,
+    );
 
     response.status(204).send();
   }

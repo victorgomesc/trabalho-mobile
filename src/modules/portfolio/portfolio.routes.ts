@@ -1,22 +1,18 @@
 import { Router } from "express";
 
-import { validate } from "../../middlewares/validate";
+import { auth } from "../../middlewares/auth";
 
-import {
-  PortfolioController,
-  PortfolioUserParams,
-} from "./portfolio.controller";
-
-import { portfolioUserParamsSchema } from "./portfolio.validation";
+import { PortfolioController } from "./portfolio.controller";
 
 export const portfolioRoutes = Router();
 
-const portfolioController = new PortfolioController();
+const portfolioController =
+  new PortfolioController();
 
 portfolioRoutes.get(
-  "/users/:userId/portfolio",
-  validate<PortfolioUserParams>({
-    params: portfolioUserParamsSchema,
-  }),
-  portfolioController.summary.bind(portfolioController),
+  "/",
+  auth,
+  portfolioController.summary.bind(
+    portfolioController,
+  ),
 );
