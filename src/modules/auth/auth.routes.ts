@@ -5,7 +5,9 @@ import { validate } from "../../middlewares/validate";
 import { AuthController } from "./auth.controller";
 
 import {
+  LoginInput,
   RegisterInput,
+  loginSchema,
   registerSchema,
 } from "./auth.schema";
 
@@ -19,4 +21,12 @@ authRoutes.post(
     body: registerSchema,
   }),
   authController.register.bind(authController),
+);
+
+authRoutes.post(
+  "/login",
+  validate<Record<string, string>, LoginInput>({
+    body: loginSchema,
+  }),
+  authController.login.bind(authController),
 );

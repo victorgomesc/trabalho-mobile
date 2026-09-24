@@ -20,4 +20,18 @@ export const registerSchema = z.object({
     .max(72, "A senha deve possuir no máximo 72 caracteres"),
 });
 
+export const loginSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email("E-mail inválido")
+    .transform((email) => email.toLowerCase()),
+
+  password: z
+    .string()
+    .min(1, "A senha é obrigatória"),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+export type LoginInput = z.infer<typeof loginSchema>;
