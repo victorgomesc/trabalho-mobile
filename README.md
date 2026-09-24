@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🚀 Carteira de Investimentos — Backend API
+# Carteira de Investimentos — Backend API
 
-### Gerencie usuários, ativos, posições e transações em um só lugar 📈💰
+### Gerencie usuários, ativos, posições e transações em um só lugar
 
 [![Node.js](https://img.shields.io/badge/Node.js-v18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
