@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../config/database";
+import { portfolioRoutes } from "../modules/portfolio/portfolio.routes";
+import { positionsRoutes } from "../modules/positions/positions.routes";
 
 export const routes = Router();
 
@@ -24,5 +26,5 @@ routes.get("/health", async (_request, response) => {
 // routes.use("/auth", authRoutes);
 // routes.use("/users", usersRoutes);
 // routes.use("/assets", assetsRoutes);
-// routes.use("/positions", positionsRoutes);
-// routes.use("/portfolio", portfolioRoutes);
+routes.use("/positions", positionsRoutes);
+routes.use("/portfolio", portfolioRoutes);
