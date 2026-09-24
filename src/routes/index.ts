@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { database } from "../config/database";
 import { positionsRoutes } from "../modules/positions/positions.routes";
+import { portfolioRoutes } from "../modules/portfolio/portfolio.routes";
 
 export const routes = Router();
 
@@ -26,4 +27,4 @@ routes.get("/health", async (_request, response) => {
 // routes.use("/users", usersRoutes);
 // routes.use("/assets", assetsRoutes);
 routes.use("/positions", positionsRoutes);
-// routes.use("/portfolio", portfolioRoutes);
+routes.use("/portfolio", portfolioRoutes);
