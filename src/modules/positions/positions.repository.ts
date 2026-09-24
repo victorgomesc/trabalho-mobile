@@ -118,4 +118,37 @@ export class PositionsRepository {
 
     return (result.rowCount ?? 0) > 0;
   }
+
+  async assetExists(assetId: string): Promise<boolean> {
+    const result = await database.query(
+        `
+        SELECT 1
+        FROM ativos
+        WHERE id = $1
+        LIMIT 1
+        `,
+        [assetId],
+    );
+
+    return (result.rowCount ?? 0) > 0;
+    }
+
+    async findByUserAndAsset(
+        userId: string,
+        assetId: string,
+        ): Promise<Position | null> {
+        const result = await database.query(
+            `
+            SELECT *
+            FROM posicoes_carteira
+            WHERE usuario_id = $1
+            AND ativo_id = $2
+            LIMIT 1
+            `,
+            [userId, assetId],
+        );
+
+        return result.rows[0] ?? null;
+    }
+
 }

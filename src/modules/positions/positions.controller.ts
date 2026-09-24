@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import { PositionsService } from "./positions.service";
 import {
   CreatePositionDTO,
@@ -7,11 +8,11 @@ import {
 
 const positionsService = new PositionsService();
 
-interface UserParams {
+export interface UserParams {
   userId: string;
 }
 
-interface PositionParams {
+export interface PositionParams {
   userId: string;
   id: string;
 }
@@ -20,18 +21,18 @@ export class PositionsController {
   async list(
     request: Request<UserParams>,
     response: Response,
-  ) {
+  ): Promise<void> {
     const { userId } = request.params;
 
     const positions = await positionsService.list(userId);
 
-    return response.status(200).json(positions);
+    response.status(200).json(positions);
   }
 
   async findById(
     request: Request<PositionParams>,
     response: Response,
-  ) {
+  ): Promise<void> {
     const { userId, id } = request.params;
 
     const position = await positionsService.findById(
@@ -39,13 +40,13 @@ export class PositionsController {
       userId,
     );
 
-    return response.status(200).json(position);
+    response.status(200).json(position);
   }
 
   async create(
-    request: Request<UserParams, {}, CreatePositionDTO>,
+    request: Request<UserParams, unknown, CreatePositionDTO>,
     response: Response,
-  ) {
+  ): Promise<void> {
     const { userId } = request.params;
 
     const position = await positionsService.create(
@@ -53,17 +54,17 @@ export class PositionsController {
       request.body,
     );
 
-    return response.status(201).json(position);
+    response.status(201).json(position);
   }
 
   async update(
     request: Request<
       PositionParams,
-      {},
+      unknown,
       UpdatePositionDTO
     >,
     response: Response,
-  ) {
+  ): Promise<void> {
     const { userId, id } = request.params;
 
     const position = await positionsService.update(
@@ -72,17 +73,17 @@ export class PositionsController {
       request.body,
     );
 
-    return response.status(200).json(position);
+    response.status(200).json(position);
   }
 
   async delete(
     request: Request<PositionParams>,
     response: Response,
-  ) {
+  ): Promise<void> {
     const { userId, id } = request.params;
 
     await positionsService.delete(id, userId);
 
-    return response.status(204).send();
+    response.status(204).send();
   }
 }

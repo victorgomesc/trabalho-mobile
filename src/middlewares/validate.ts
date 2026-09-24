@@ -1,15 +1,18 @@
 import { RequestHandler } from "express";
 import { ZodType } from "zod";
 
-type RequestSchemas = {
-  body?: ZodType;
-  params?: ZodType;
+type RequestSchemas<Params, Body> = {
+  body?: ZodType<Body>;
+  params?: ZodType<Params>;
   query?: ZodType;
 };
 
-export function validate(
-  schemas: RequestSchemas,
-): RequestHandler {
+export function validate<
+  Params = Record<string, string>,
+  Body = unknown,
+>(
+  schemas: RequestSchemas<Params, Body>,
+): RequestHandler<Params, unknown, Body> {
   return (request, _response, next) => {
     if (schemas.body) {
       request.body = schemas.body.parse(request.body);
