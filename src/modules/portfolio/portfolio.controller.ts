@@ -4,19 +4,23 @@ import { PortfolioService } from "./portfolio.service";
 
 const portfolioService = new PortfolioService();
 
-export interface PortfolioUserParams {
-  userId: string;
-}
-
 export class PortfolioController {
   async summary(
-    request: Request<PortfolioUserParams>,
+    request: Request,
     response: Response,
   ): Promise<void> {
-    const { userId } = request.params;
+    if (!request.user) {
+      response.status(401).json({
+        error: "Usuário não autenticado",
+      });
+
+      return;
+    }
 
     const summary =
-      await portfolioService.getSummary(userId);
+      await portfolioService.getSummary(
+        request.user.id,
+      );
 
     response.status(200).json(summary);
   }

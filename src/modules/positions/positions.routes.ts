@@ -1,11 +1,11 @@
 import { Router } from "express";
 
+import { auth } from "../../middlewares/auth";
 import { validate } from "../../middlewares/validate";
 
 import {
   PositionParams,
   PositionsController,
-  UserParams,
 } from "./positions.controller";
 
 import {
@@ -17,7 +17,6 @@ import {
   createPositionSchema,
   positionParamsSchema,
   updatePositionSchema,
-  userParamsSchema,
 } from "./positions.validation";
 
 export const positionsRoutes = Router();
@@ -25,43 +24,66 @@ export const positionsRoutes = Router();
 const positionsController = new PositionsController();
 
 positionsRoutes.get(
-  "/users/:userId/positions",
-  validate<UserParams>({
-    params: userParamsSchema,
-  }),
+  "/",
+  auth,
   positionsController.list.bind(positionsController),
 );
 
-positionsRoutes.get(
-  "/users/:userId/positions/:id",
+positionsRoutes.get<PositionParams>(
+  "/:id",
+  auth,
   validate<PositionParams>({
     params: positionParamsSchema,
   }),
-  positionsController.findById.bind(positionsController),
+  positionsController.findById.bind(
+    positionsController,
+  ),
 );
 
-positionsRoutes.post(
-  "/users/:userId/positions",
-  validate<UserParams, CreatePositionDTO>({
-    params: userParamsSchema,
+positionsRoutes.post<
+  Record<string, string>,
+  unknown,
+  CreatePositionDTO
+>(
+  "/",
+  auth,
+  validate<
+    Record<string, string>,
+    CreatePositionDTO
+  >({
     body: createPositionSchema,
   }),
-  positionsController.create.bind(positionsController),
+  positionsController.create.bind(
+    positionsController,
+  ),
 );
 
-positionsRoutes.patch(
-  "/users/:userId/positions/:id",
-  validate<PositionParams, UpdatePositionDTO>({
+positionsRoutes.patch<
+  PositionParams,
+  unknown,
+  UpdatePositionDTO
+>(
+  "/:id",
+  auth,
+  validate<
+    PositionParams,
+    UpdatePositionDTO
+  >({
     params: positionParamsSchema,
     body: updatePositionSchema,
   }),
-  positionsController.update.bind(positionsController),
+  positionsController.update.bind(
+    positionsController,
+  ),
 );
 
-positionsRoutes.delete(
-  "/users/:userId/positions/:id",
+positionsRoutes.delete<PositionParams>(
+  "/:id",
+  auth,
   validate<PositionParams>({
     params: positionParamsSchema,
   }),
-  positionsController.delete.bind(positionsController),
+  positionsController.delete.bind(
+    positionsController,
+  ),
 );
