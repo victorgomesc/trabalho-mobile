@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { validate } from "../../middlewares/validate";
 import { auth } from "../../middlewares/auth";
+import { ensureAdmin } from "../../middlewares/ensureAdmin";
 import { AssetParams, AssetsController } from "./assets.controller";
 import {
   assetParamsSchema,
@@ -23,6 +24,7 @@ assetsRoutes.get(
 assetsRoutes.post(
   "/",
   auth,
+  ensureAdmin,
   validate<unknown, CreateAssetDTO>({ body: createAssetSchema }),
   assetsController.create.bind(assetsController),
 );
@@ -30,6 +32,7 @@ assetsRoutes.post(
 assetsRoutes.patch(
   "/:id",
   auth,
+  ensureAdmin,
   validate<AssetParams, UpdateAssetDTO>({
     params: assetParamsSchema,
     body: updateAssetSchema,
@@ -40,6 +43,7 @@ assetsRoutes.patch(
 assetsRoutes.delete(
   "/:id",
   auth,
+  ensureAdmin,
   validate<AssetParams>({ params: assetParamsSchema }),
   assetsController.delete.bind(assetsController),
 );
