@@ -29,9 +29,6 @@ routes.get("/health", async (_request, response) => {
 
 routes.use("/auth", authRoutes);
 routes.use("/users", usersRoutes);
-// routes.use("/assets", assetsRoutes);
-// routes.use("/auth", authRoutes);
-// routes.use("/users", usersRoutes);
 routes.use("/transactions", transactionsRoutes);
 routes.use("/assets", assetsRoutes);
 routes.use("/positions", positionsRoutes);
