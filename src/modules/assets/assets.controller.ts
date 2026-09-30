@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { AssetsService } from "./assets.service";
 import { CreateAssetDTO, UpdateAssetDTO } from "./assets.types";
+import { ParamsDictionary } from "express-serve-static-core";
 
 const assetsService = new AssetsService();
 
-export interface AssetParams {
+export interface AssetParams extends ParamsDictionary {
   id: string;
 }
 
