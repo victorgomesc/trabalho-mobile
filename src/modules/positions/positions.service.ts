@@ -5,99 +5,59 @@ import {
   UpdatePositionDTO,
 } from "./positions.types";
 
-export class PositionsService {
-  private positionsRepository: PositionsRepository;
+import { TransactionsError } from "../transactions/transactions.errors";
+import { TransactionsService } from "../transactions/transactions.service";
 
-  constructor() {
-    this.positionsRepository =
-      new PositionsRepository();
-  }
+export class PositionsService {
+  private readonly positionsRepository =
+    new PositionsRepository();
+
+  private readonly transactionsService =
+    new TransactionsService();
 
   async list(userId: string) {
-    return this.positionsRepository.findAllByUser(
-      userId,
-    );
+    await this.transactionsService.getBalance(userId);
+
+    return this.positionsRepository.findAllByUser(userId);
   }
 
-  async findById(
-    id: string,
-    userId: string,
-  ) {
-    const position =
-      await this.positionsRepository.findById(
-        id,
-        userId,
-      );
+  async findById(id: string, userId: string) {
+    await this.transactionsService.getBalance(userId);
+
+    const position = await this.positionsRepository.findById(
+      id,
+      userId,
+    );
 
     if (!position) {
-      throw new Error("Posição não encontrada");
+      throw new TransactionsError("Posição não encontrada", 404);
     }
 
     return position;
   }
 
-  async create(
-    userId: string,
-    data: CreatePositionDTO,
-  ) {
-    const assetExists =
-      await this.positionsRepository.assetExists(
-        data.assetId,
-      );
-
-    if (!assetExists) {
-      throw new Error("Ativo não encontrado");
-    }
-
-    const existingPosition =
-      await this.positionsRepository.findByUserAndAsset(
-        userId,
-        data.assetId,
-      );
-
-    if (existingPosition) {
-      throw new Error(
-        "O usuário já possui uma posição para este ativo",
-      );
-    }
-
-    return this.positionsRepository.create(
-      userId,
-      data,
-    );
+  async create(userId: string, data: CreatePositionDTO) {
+    return this.transactionsService.buy(userId, data);
   }
 
   async update(
-    id: string,
-    userId: string,
-    data: UpdatePositionDTO,
-  ) {
-    const position =
-      await this.positionsRepository.update(
-        id,
-        userId,
-        data,
-      );
-
-    if (!position) {
-      throw new Error("Posição não encontrada");
-    }
-
-    return position;
+    _id: string,
+    _userId: string,
+    _data: UpdatePositionDTO,
+  ): Promise<never> {
+    throw new TransactionsError(
+      "Alteração direta de posições desabilitada. Use operações de compra",
+      405,
+    );
   }
 
   async delete(
-    id: string,
-    userId: string,
-  ) {
-    const deleted =
-      await this.positionsRepository.delete(
-        id,
-        userId,
-      );
-
-    if (!deleted) {
-      throw new Error("Posição não encontrada");
-    }
+    _id: string,
+    _userId: string,
+  ): Promise<never> {
+    throw new TransactionsError(
+      "Exclusão direta de posições desabilitada. A venda ainda não foi implementada",
+      405,
+    );
   }
 }

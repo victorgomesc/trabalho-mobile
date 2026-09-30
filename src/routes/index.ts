@@ -5,6 +5,7 @@ import { portfolioRoutes } from "../modules/portfolio/portfolio.routes";
 import { positionsRoutes } from "../modules/positions/positions.routes";
 import { authRoutes } from "../modules/auth/auth.routes";
 import { usersRoutes } from "../modules/users/users.routes";
+import { transactionsRoutes } from "../modules/transactions/transactions.routes";
 
 export const routes = Router();
 
@@ -31,6 +32,7 @@ routes.use("/users", usersRoutes);
 // routes.use("/assets", assetsRoutes);
 // routes.use("/auth", authRoutes);
 // routes.use("/users", usersRoutes);
+routes.use("/transactions", transactionsRoutes);
 routes.use("/assets", assetsRoutes);
 routes.use("/positions", positionsRoutes);
 routes.use("/portfolio", portfolioRoutes);

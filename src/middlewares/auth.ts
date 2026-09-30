@@ -3,12 +3,11 @@ import jwt from "jsonwebtoken";
 
 import { env } from "../config/env";
 
-export const auth: RequestHandler<
-  any,
-  any,
-  any,
-  any
-> = (request, response, next): void => {
+export const auth: RequestHandler = (
+  request,
+  response,
+  next,
+): void => {
   const authorization = request.headers.authorization;
 
   if (!authorization) {
@@ -19,11 +18,11 @@ export const auth: RequestHandler<
     return;
   }
 
-  const [type, token] = authorization.split(" ");
+  const [scheme, token] = authorization.split(" ");
 
-  if (type !== "Bearer" || !token) {
+  if (scheme !== "Bearer" || !token) {
     response.status(401).json({
-      error: "Token de autenticação inválido",
+      error: "Formato do token de autenticação inválido",
     });
 
     return;
@@ -37,7 +36,7 @@ export const auth: RequestHandler<
 
     if (
       typeof decoded === "string" ||
-      !decoded.sub
+      typeof decoded.sub !== "string"
     ) {
       response.status(401).json({
         error: "Token de autenticação inválido",

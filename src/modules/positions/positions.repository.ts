@@ -81,6 +81,19 @@ export class PositionsRepository {
     );
   }
 
+  async userExists(userId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return user !== null;
+}
+
   async findById(
     id: string,
     userId: string,
