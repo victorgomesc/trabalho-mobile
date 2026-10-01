@@ -5,7 +5,7 @@
 ### Gerencie usuários, ativos, posições e transações em um só lugar
 
 [![Node.js](https://img.shields.io/badge/Node.js-v18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Express](https://img.shields.io/badge/Express-v5-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-v6-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -13,7 +13,7 @@
 
 **API RESTful** construída com **Node.js + TypeScript + Express + Prisma + PostgreSQL** para gestão de carteiras de investimento.
 
-[⚙️ Como Rodar](#️-como-rodar-o-projeto-passo-a-passo) • [🗄️ Banco de Dados](#️-banco-de-dados) • [🧪 Testar Rotas](#-testando-as-rotas) • [📁 Estrutura](#-estrutura-de-pastas) • [🆘 Troubleshooting](#-troubleshooting--erros-comuns)
+[⚙️ Como Rodar](#️-como-rodar-o-projeto-passo-a-passo) • [🗄️ Banco de Dados](#️-banco-de-dados) • [🧪 Testar Rotas](#-testando-as-rotas) • [📁 Estrutura](#-estrutura-de-pastas) • [🆘 Troubleshooting](#troubleshooting--erros-comuns)
 
 </div>
 
@@ -27,14 +27,15 @@
 
 | Módulo | Descrição | Status |
 | :--- | :--- | :---: |
-| 🔐 **Auth** | Registro, login com JWT + bcrypt | 🚧 Em construção |
-| 👤 **Users** | CRUD de usuários + saldo | 🚧 Em construção |
-| 📊 **Assets** | Cadastro de ativos (ticker, preço) | 🚧 Em construção |
-| 💼 **Positions** | Posição consolidada por usuário/ativo | 🚧 Em construção |
-| 📈 **Portfolio** | Extrato, rentabilidade e histórico | 🚧 Em construção |
+| 🔐 **Auth** | Registro, login com JWT + bcrypt | ✅ **Funcionando** |
+| 👤 **Users** | Perfil do usuário + saldo | ✅ **Funcionando** |
+| 📊 **Assets** | CRUD de ativos (ticker, preço) — **apenas admin** | ✅ **Funcionando** |
+| 💼 **Positions** | Posição consolidada por usuário/ativo | ✅ **Funcionando** |
+| 📈 **Portfolio** | Extrato e resumo da carteira | ✅ **Funcionando** |
+| 💸 **Transactions** | Depósitos, saques, compras e vendas | ✅ **Funcionando** |
 | ✅ **Healthcheck** | Status da API + conexão com o banco | ✅ **Funcionando** |
 
-> 💡 **Estado atual:** o esqueleto da API, banco de dados e as rotas base (`GET /api/` e `GET /api/health`) já estão funcionais. Os módulos de domínio existem como pastas em `src/modules/` e serão plugados em `src/routes/index.ts`.
+> 💡 **Estado atual:** todos os módulos estão implementados e funcionando. A API possui autenticação JWT completa com verificação de papel (admin/usuário).
 
 ---
 
@@ -43,7 +44,7 @@
 | Categoria | Tech |
 | :--- | :--- |
 | **Runtime** | Node.js v18+ (testado na v26) |
-| **Linguagem** | TypeScript |
+| **Linguagem** | TypeScript 7 |
 | **Framework** | Express v5 |
 | **ORM** | Prisma v6 |
 | **Banco** | PostgreSQL 15+ |
@@ -172,17 +173,17 @@ PostgreSQL gerenciado pelo **Prisma ORM**. Schema oficial em [`prisma/schema.pri
 ### 🧩 Diagrama entidade-relacionamento
 
 ```text
- +------------------+         +-----------------------+         +------------------+
- |      users       |         |  portfolio_positions  |         |      assets      |
- +------------------+         +-----------------------+         +------------------+
- | id (PK, UUID)    |<---+--->| id (PK, UUID)         |<---+--->| id (PK, UUID)    |
- | name             |    |    | user_id (FK)          |    |    | ticker (UNIQUE)  |
- | email (UNIQUE)   |    |    | asset_id (FK)         |    |    | name             |
- | password_hash    |    |    | quantity              |    |    | type             |
- | balance          |    |    | average_price         |    |    | current_price    |
- | created_at       |    |    | updated_at            |    |    | updated_at       |
- +------------------+    |    +-----------------------+    |    +------------------+
-                         |             UNIQUE(user_id, asset_id)    |
+  +------------------+         +-----------------------+         +------------------+
+  |      users       |         |  portfolio_positions  |         |      assets      |
+  +------------------+         +-----------------------+         +------------------+
+  | id (PK, UUID)    |<---+--->| id (PK, UUID)         |<---+--->| id (PK, UUID)    |
+  | name             |    |    | user_id (FK)          |    |    | ticker (UNIQUE)  |
+  | email (UNIQUE)   |    |    | asset_id (FK)         |    |    | name             |
+  | password_hash    |    |    | quantity              |    |    | type             |
+  | balance          |    |    | average_price         |    |    | current_price    |
+  | role (ENUM)      |    |    | updated_at            |    |    | updated_at       |
+  | created_at       |    |    +-----------------------+    |    +------------------+
+  +------------------+    |             UNIQUE(user_id, asset_id)    |
                          |                                        |
                          |    +-----------------------+           |
                          +--->|     transactions      |<----------+
@@ -216,6 +217,7 @@ PostgreSQL gerenciado pelo **Prisma ORM**. Schema oficial em [`prisma/schema.pri
 | `email` | `VARCHAR(150)` | Único, obrigatório |
 | `password_hash` | `VARCHAR(255)` | Obrigatório (hash bcrypt, nunca senha pura!) |
 | `balance` | `DECIMAL(15,2)` | Padrão `0.00` — saldo em R$ |
+| `role` | `ENUM(USER, ADMIN)` | Padrão `USER` — papel do usuário |
 | `created_at` | `TIMESTAMP` | Padrão `now()` |
 
 #### 📊 `assets`
@@ -271,7 +273,7 @@ Abre em `http://localhost:5555` — dá pra ver/editar as 4 tabelas sem escrever
 \dt
 
 -- Ver usuários
-SELECT id, name, email, balance FROM users;
+SELECT id, name, email, balance, role FROM users;
 
 -- Ver ativos
 SELECT ticker, name, type, current_price FROM assets;
@@ -298,21 +300,95 @@ LIMIT 20;
 
 ---
 
+## 🔐 Autenticação e Autorização
+
+A API utiliza **JWT (JSON Web Token)** para autenticação e verificação de papel (role) para autorização.
+
+### Fluxo de Autenticação
+
+```
+┌─────────────┐     POST /auth/register      ┌─────────────┐
+│   Cliente   │ ──────────────────────────►  │    API      │
+│             │     POST /auth/login         │             │
+│             │ ──────────────────────────►  │             │
+│             │                               │             │
+│             │  ◄────── JWT Token ────────  │             │
+│             │                               │             │
+│             │  GET /users/me               │             │
+│             │  Authorization: Bearer token  │             │
+│             │ ──────────────────────────►  │             │
+│             │                               │             │
+│             │  ◄────── Dados do usuário ──  │             │
+└─────────────┘                               └─────────────┘
+```
+
+### Middlewares de Segurança
+
+| Middleware | Arquivo | Descrição |
+| :--- | :--- | :--- |
+| `auth` | `src/middlewares/auth.ts` | Valida o JWT token e extrai `id` e `role` do usuário |
+| `ensureAdmin` | `src/middlewares/ensureAdmin.ts` | Verifica se o usuário tem papel `ADMIN` |
+
+### Níveis de Acesso
+
+| Nível | Descrição | Rotas |
+| :--- | :--- | :--- |
+| 🟢 **Público** | Não requer autenticação | `GET /api/`, `GET /api/health`, `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/assets`, `GET /api/assets/:id` |
+| 🔵 **Autenticado** | Requer JWT token válido | `/api/users/*`, `/api/transactions/*`, `/api/positions/*`, `/api/portfolio` |
+| 🟡 **Admin** | Requer JWT token com role `ADMIN` | `POST /api/assets`, `PATCH /api/assets/:id`, `DELETE /api/assets/:id` |
+
+### Estrutura do Token JWT
+
+```json
+{
+  "role": "USER",
+  "sub": "uuid-do-usuario",
+  "iat": 1696118400,
+  "exp": 1696204800
+}
+```
+
+---
+
 ## 🧪 Testando as Rotas
 
 > Todas as rotas começam com o prefixo **`/api`**. Base local: `http://localhost:3333`
 
-### 📌 Tabela de rotas atuais
+### 📌 Tabela completa de rotas
 
-| Método | Rota | Descrição | Auth? | Status |
-| :---: | :--- | :--- | :---: | :---: |
-| `GET` | `/api/` | Info da API (nome, versão, status) | Não | ✅ Ativa |
-| `GET` | `/api/health` | Checa conexão com o Postgres | Não | ✅ Ativa |
-| * | `/api/auth/*` | Login / registro | — | 🚧 Futura |
-| * | `/api/users/*` | CRUD usuários | — | 🚧 Futura |
-| * | `/api/assets/*` | CRUD ativos | — | 🚧 Futura |
-| * | `/api/positions/*` | Posições | — | 🚧 Futura |
-| * | `/api/portfolio/*` | Carteira / extrato | — | 🚧 Futura |
+| Método | Rota | Descrição | Auth? | Admin? |
+| :--- | :--- | :--- | :---: | :---: |
+| `GET` | `/api/` | Info da API (nome, versão, status) | ❌ | ❌ |
+| `GET` | `/api/health` | Checa conexão com o Postgres | ❌ | ❌ |
+| `POST` | `/api/auth/register` | Registro de novo usuário | ❌ | ❌ |
+| `POST` | `/api/auth/login` | Login (retorna JWT token) | ❌ | ❌ |
+| `GET` | `/api/users/me` | Dados do usuário logado | ✅ | ❌ |
+| `PATCH` | `/api/users/me` | Atualizar dados do usuário | ✅ | ❌ |
+| `DELETE` | `/api/users/me` | Deletar conta do usuário | ✅ | ❌ |
+| `GET` | `/api/assets` | Listar todos os ativos | ❌ | ❌ |
+| `GET` | `/api/assets/:id` | Buscar ativo por ID | ❌ | ❌ |
+| `POST` | `/api/assets` | Criar novo ativo | ✅ | ✅ |
+| `PATCH` | `/api/assets/:id` | Atualizar ativo | ✅ | ✅ |
+| `DELETE` | `/api/assets/:id` | Deletar ativo | ✅ | ✅ |
+| `GET` | `/api/transactions` | Listar transações do usuário | ✅ | ❌ |
+| `GET` | `/api/transactions/balance` | Saldo do usuário | ✅ | ❌ |
+| `POST` | `/api/transactions/deposit` | Realizar depósito | ✅ | ❌ |
+| `POST` | `/api/transactions/withdraw` | Realizar saque | ✅ | ❌ |
+| `GET` | `/api/positions` | Listar posições do usuário | ✅ | ❌ |
+| `GET` | `/api/positions/:id` | Buscar posição por ID | ✅ | ❌ |
+| `POST` | `/api/positions` | Criar nova posição | ✅ | ❌ |
+| `PATCH` | `/api/positions/:id` | Atualizar posição | ✅ | ❌ |
+| `DELETE` | `/api/positions/:id` | Deletar posição | ✅ | ❌ |
+| `GET` | `/api/portfolio` | Resumo da carteira | ✅ | ❌ |
+
+### 🧪 Testador HTML Interativo
+
+Incluímos um arquivo **`test-routes.html`** na raiz do projeto para testar todas as rotas de forma visual:
+
+1. Inicie a API: `npm run dev`
+2. Abra o arquivo `test-routes.html` no navegador
+3. Cole seu token JWT (após login) nos campos apropriados
+4. Clique em **Test** em cada rota para ver o resultado
 
 ### 1️⃣ `GET /api/` — Status da API
 
@@ -370,6 +446,62 @@ Invoke-RestMethod http://localhost:3333/api/health
 }
 ```
 
+### 3️⃣ `POST /api/auth/register` — Registro
+
+```bash
+curl -X POST http://localhost:3333/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"João Silva","email":"joao@example.com","password":"senha123"}'
+```
+
+**Resposta `201 Created` ✅:**
+
+```json
+{
+  "message": "Usuário cadastrado com sucesso",
+  "user": {
+    "id": "uuid-aqui",
+    "name": "João Silva",
+    "email": "joao@example.com",
+    "balance": 0,
+    "createdAt": "2026-09-24T01:20:15.000Z"
+  }
+}
+```
+
+### 4️⃣ `POST /api/auth/login` — Login
+
+```bash
+curl -X POST http://localhost:3333/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"joao@example.com","password":"senha123"}'
+```
+
+**Resposta `200 OK` ✅:**
+
+```json
+{
+  "message": "Login realizado com sucesso",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "uuid-aqui",
+    "name": "João Silva",
+    "email": "joao@example.com",
+    "balance": 0,
+    "createdAt": "2026-09-24T01:20:15.000Z"
+  }
+}
+```
+
+### 5️⃣ Rotas protegidas (com JWT)
+
+Para rotas que exigem autenticação, inclua o header `Authorization`:
+
+```bash
+curl http://localhost:3333/api/users/me \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
 ### 🧰 Testando com Insomnia / Postman / Thunder Client
 
 1. Crie uma **Collection** chamada `Carteira de Investimentos`
@@ -377,7 +509,10 @@ Invoke-RestMethod http://localhost:3333/api/health
 3. Adicione as requests:
    - `GET {{baseUrl}}/api/` → sem headers, sem body
    - `GET {{baseUrl}}/api/health` → sem headers, sem body
-4. (Futuro) Para rotas protegidas: faça login, copie o `token` e use header `Authorization: Bearer <token>`
+   - `POST {{baseUrl}}/api/auth/register` → body JSON com name, email, password
+   - `POST {{baseUrl}}/api/auth/login` → body JSON com email, password
+4. Para rotas protegidas: faça login, copie o `token` e use header `Authorization: Bearer <token>`
+5. Para rotas admin: use token de um usuário com role `ADMIN`
 
 ### ❌ Respostas de erro padrão
 
@@ -385,7 +520,10 @@ Invoke-RestMethod http://localhost:3333/api/health
 | :--- | :---: | :--- |
 | Rota inexistente | `404` | `{ "error": "Rota não encontrada" }` |
 | Validação Zod falhou | `422` | `{ "error": "Dados inválidos", "details": { "email": ["E-mail inválido"] } }` |
-| Erro de regra de negócio | `400/401/404` | `{ "error": "Mensagem amigável" }` |
+| Token não informado | `401` | `{ "error": "Token de autenticação não informado" }` |
+| Token inválido/expirado | `401` | `{ "error": "Token de autenticação inválido ou expirado" }` |
+| Acesso negado (não admin) | `403` | `{ "error": "Acesso negado. Apenas administradores podem realizar esta operação." }` |
+| Erro de regra de negócio | `400/404` | `{ "error": "Mensagem amigável" }` |
 | Erro inesperado | `500` | `{ "error": "Erro interno do servidor" }` |
 
 > Tratamento centralizado em `src/middlewares/error-handler.ts` + `not-found.ts`.
@@ -398,6 +536,7 @@ Invoke-RestMethod http://localhost:3333/api/health
 trabalho-mobile/
 ├── 📄 .env.example          # Modelo das variáveis de ambiente
 ├── 📄 package.json          # Scripts + dependências
+├── 📄 test-routes.html      # 🧪 Testador visual de rotas (abrir no navegador)
 ├── 📁 prisma/
 │   ├── schema.prisma        # 🗄️ Modelos: User, Asset, Transaction, PortfolioPosition
 │   └── migrations/          # Histórico de migrations SQL
@@ -408,21 +547,31 @@ trabalho-mobile/
 │   │   ├── env.ts           # Validação do .env com Zod
 │   │   └── database.ts      # Instância única do PrismaClient
 │   ├── routes/
-│   │   └── index.ts         # Rotas base (/, /health) + futuras (comentadas)
+│   │   └── index.ts         # Rotas base (/, /health) + módulos
 │   ├── middlewares/
+│   │   ├── auth.ts          # 🔐 Valida JWT token
+│   │   ├── ensureAdmin.ts   # 🛡️ Verifica se usuário é admin
 │   │   ├── error-handler.ts # Trata AppError, ZodError e 500
 │   │   ├── not-found.ts     # Retorna 404 padronizado
 │   │   └── validate.ts      # Validação com Zod nos módulos
 │   ├── modules/             # Arquitetura por domínio
 │   │   ├── auth/            # controller, service, routes, schema
 │   │   ├── users/           # controller, service, repository, routes, schema
-│   │   ├── assets/          # controller, service, repository, routes, schema
-│   │   ├── positions/       # controller, service, repository, routes, schema
-│   │   └── portfolio/       # controller, service, routes
+│   │   ├── assets/          # controller, service, repository, routes, schema, types
+│   │   ├── positions/       # controller, service, repository, routes, schema, validation, types
+│   │   ├── portfolio/       # controller, service, repository, routes, validation, types
+│   │   └── transactions/    # controller, service, repository, routes, errors
+│   ├── integrations/
+│   │   └── brapi.client.ts  # Cliente HTTP para API externa (Brapi)
+│   ├── jobs/
+│   │   └── assets-sync.job.ts # Job de sincronização de ativos (node-cron)
+│   ├── docs/
+│   │   └── swagger.ts       # Documentação OpenAPI/Swagger
 │   ├── shared/
 │   │   └── errors/
 │   │       └── AppError.ts  # Erro customizado (message, statusCode, details)
-│   └── types/               # Tipos globais TypeScript
+│   └── types/
+│       └── express.d.ts     # Extensão do Express Request (user)
 └── 📖 README.md             # Este arquivo 🙂
 ```
 
@@ -440,6 +589,9 @@ trabalho-mobile/
 | `Port 3333 is already in use` | Outra API rodando | Mude `PORT` no `.env` ou mate o processo |
 | `npx prisma migrate dev` pede nome da migration | Normal no primeiro uso | Dê um nome ex: `init` |
 | `GET /api/health` retorna 500 | Banco caiu depois da API subir | Reconecte o banco e reinicie com `npm run dev` |
+| `Token de autenticação inválido` | Token expirado ou malformado | Faça login novamente para obter novo token |
+| `Acesso negado. Apenas administradores...` | Rota admin com token de usuário normal | Use token de um usuário com role `ADMIN` |
+| `Cannot find module 'swagger-jsdoc'` | Dependências não instaladas | Rode `npm install` |
 
 **Reset total (dev apenas! ⚠️):**
 
