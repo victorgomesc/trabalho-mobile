@@ -3,6 +3,19 @@ import jwt from "jsonwebtoken";
 
 import { env } from "../config/env";
 
+export interface AuthUser {
+  id: string;
+  role: "ADMIN" | "USER";
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthUser;
+    }
+  }
+}
+
 export const auth: RequestHandler = (
   request,
   response,
@@ -45,8 +58,11 @@ export const auth: RequestHandler = (
       return;
     }
 
+    const decodedToken = decoded as { sub: string; role?: "ADMIN" | "USER" };
+
     request.user = {
-      id: decoded.sub,
+      id: decodedToken.sub,
+      role: decodedToken.role ?? "USER",
     };
 
     next();

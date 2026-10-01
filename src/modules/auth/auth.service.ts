@@ -68,7 +68,7 @@ export class AuthService {
       env.JWT_EXPIRES_IN as SignOptions["expiresIn"];
 
     const token = jwt.sign(
-      {},
+      { role: user.role },
       env.JWT_SECRET,
       {
         subject: user.id,

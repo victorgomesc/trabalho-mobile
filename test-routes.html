@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Route Tester — Automático</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-elevated: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --success: #3fb950;
+      --error: #f85149;
+      --warning: #d29922;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+      --radius: 6px;
+      --transition: 150ms ease;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    input {
+      font-family: var(--mono);
+      font-size: 13px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      width: 100%;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+    }
+
+    input[type="text"] { width: 280px; }
+    input[type="password"] { width: 220px; }
+
+    button {
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background-color var(--transition), transform var(--transition);
+    }
+
+    button:hover:not(:disabled) { background: var(--accent-hover); }
+    button:active:not(:disabled) { transform: scale(0.98); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    button.secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
+    button.secondary:hover:not(:disabled) { background: var(--border); }
+    button.danger { background: var(--error); color: white; }
+    button.danger:hover:not(:disabled) { background: #ff6b64; }
+
+    .module {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .module-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(88, 166, 255, 0.05);
+    }
+
+    .module-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .module-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .tag-public { background: rgba(63, 185, 80, 0.15); color: var(--success); }
+    .tag-auth { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
+    .tag-admin { background: rgba(210, 153, 34, 0.15); color: var(--warning); }
+
+    .route {
+      display: grid;
+      grid-template-columns: 100px 260px 1fr;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      align-items: start;
+    }
+
+    .route:last-child { border-bottom: none; }
+
+    .route-method {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .method-get { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
+    .method-post { background: rgba(63, 185, 80, 0.15); color: var(--success); }
+    .method-patch { background: rgba(210, 153, 34, 0.15); color: var(--warning); }
+    .method-delete { background: rgba(248, 81, 73, 0.15); color: var(--error); }
+
+    .route-path {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .route-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .route-result {
+      grid-column: 1 / -1;
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 48px;
+      display: none;
+    }
+
+    .route-result.show { display: block; }
+
+    .result-success { border-left: 3px solid var(--success); }
+    .result-error { border-left: 3px solid var(--error); }
+    .result-loading { border-left: 3px solid var(--warning); color: var(--text-muted); }
+
+    .json-key { color: #79c0ff; }
+    .json-string { color: #a5d6ff; }
+    .json-number { color: #7ee787; }
+    .json-boolean { color: #d2a8ff; }
+    .json-null { color: var(--text-muted); }
+
+    .auth-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .status-dot.connected { background: var(--success); }
+    .status-dot.error { background: var(--error); }
+
+    .collapsible { cursor: pointer; user-select: none; }
+    .collapsible .chevron { transition: transform var(--transition); }
+    .collapsible.collapsed .chevron { transform: rotate(-90deg); }
+    .module.collapsed .routes { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>API Route Tester (Automático)</h1>
+      <p class="subtitle">Investment Wallet API — Teste automático de endpoints e tokens</p>
+    </header>
+
+    <div class="controls">
+      <div class="input-group">
+        <label>Base URL</label>
+        <input type="text" id="baseUrl" value="http://localhost:3333/api">
+      </div>
+      <div class="input-group">
+        <label>User Token</label>
+        <input type="password" id="jwtToken" placeholder="Preenchido ao logar">
+      </div>
+      <div class="input-group">
+        <label>Admin Token</label>
+        <input type="password" id="adminToken" placeholder="Preenchido se for Admin">
+      </div>
+      <button id="testAuthBtn" class="secondary" onclick="testAuth()">Validar Tokens</button>
+      <button class="secondary" onclick="clearResults()">Limpar Saídas</button>
+    </div>
+
+    <div class="auth-status" id="authStatus">
+      <span class="status-dot" id="authDot"></span>
+      <span id="authText">Nenhum token testado</span>
+    </div>
+
+    <div id="modules"></div>
+  </div>
+
+  <script>
+    const randomSuffix = Math.floor(Math.random() * 1000);
+    const defaultEmail = `user${randomSuffix}@example.com`;
+
+    const routeDefinitions = [
+      // System
+      { module: "System", method: "GET", path: "/", auth: "public", admin: false, body: null },
+      { module: "System", method: "GET", path: "/health", auth: "public", admin: false, body: null },
+
+      // Auth
+      { module: "Auth", method: "POST", path: "/auth/register", auth: "public", admin: false, body: { name: "Test User", email: defaultEmail, password: "password123" } },
+      { module: "Auth", method: "POST", path: "/auth/login", auth: "public", admin: false, body: { email: defaultEmail, password: "password123" } },
+
+      // Users
+      { module: "Users", method: "GET", path: "/users/me", auth: "auth", admin: false, body: null },
+      { module: "Users", method: "PATCH", path: "/users/me", auth: "auth", admin: false, body: { name: "Updated Name" } },
+      { module: "Users", method: "DELETE", path: "/users/me", auth: "auth", admin: false, body: null },
+
+      // Assets
+      { module: "Assets", method: "GET", path: "/assets", auth: "public", admin: false, body: null },
+      { module: "Assets", method: "GET", path: "/assets/:id", auth: "public", admin: false, body: null },
+      { module: "Assets", method: "POST", path: "/assets", auth: "auth", admin: true, body: { ticker: `TCK${randomSuffix}`, name: "Ativo de Teste", type: "STOCK", currentPrice: 50.00 } },
+      { module: "Assets", method: "PATCH", path: "/assets/:id", auth: "auth", admin: true, body: { currentPrice: 55.00 } },
+      { module: "Assets", method: "DELETE", path: "/assets/:id", auth: "auth", admin: true, body: null },
+
+      // Transactions
+      { module: "Transactions", method: "GET", path: "/transactions", auth: "auth", admin: false, body: null },
+      { module: "Transactions", method: "GET", path: "/transactions/balance", auth: "auth", admin: false, body: null },
+      { module: "Transactions", method: "POST", path: "/transactions/deposit", auth: "auth", admin: false, body: { amount: 1000 } },
+      { module: "Transactions", method: "POST", path: "/transactions/withdraw", auth: "auth", admin: false, body: { amount: 200 } },
+
+      // Positions
+      { module: "Positions", method: "GET", path: "/positions", auth: "auth", admin: false, body: null },
+      { module: "Positions", method: "GET", path: "/positions/:id", auth: "auth", admin: false, body: null },
+      { module: "Positions", method: "POST", path: "/positions", auth: "auth", admin: false, body: { assetId: "AUTO", quantity: 5, averagePrice: 50.00 } },
+      { module: "Positions", method: "PATCH", path: "/positions/:id", auth: "auth", admin: false, body: { quantity: 10 } },
+      { module: "Positions", method: "DELETE", path: "/positions/:id", auth: "auth", admin: false, body: null },
+
+      // Portfolio
+      { module: "Portfolio", method: "GET", path: "/portfolio", auth: "auth", admin: false, body: null },
+    ];
+
+    const modulesContainer = document.getElementById('modules');
+    const baseUrlInput = document.getElementById('baseUrl');
+    const jwtTokenInput = document.getElementById('jwtToken');
+    const adminTokenInput = document.getElementById('adminToken');
+    const authDot = document.getElementById('authDot');
+    const authText = document.getElementById('authText');
+
+    function getMethodClass(method) {
+      return `method-${method.toLowerCase()}`;
+    }
+
+    function renderModules() {
+      const grouped = routeDefinitions.reduce((acc, route) => {
+        if (!acc[route.module]) acc[route.module] = [];
+        acc[route.module].push(route);
+        return acc;
+      }, {});
+
+      modulesContainer.innerHTML = Object.entries(grouped).map(([moduleName, moduleRoutes]) => {
+        const authTypes = [...new Set(moduleRoutes.map(r => r.auth))];
+        const hasAdmin = moduleRoutes.some(r => r.admin);
+        const tag = hasAdmin ? 'tag-admin' : (authTypes.includes('public') && authTypes.length === 1 ? 'tag-public' : 'tag-auth');
+        const tagText = hasAdmin ? 'Admin Required' : (authTypes.includes('public') && authTypes.length === 1 ? 'Public' : 'Auth Required');
+
+        return `
+          <div class="module">
+            <div class="module-header collapsible" onclick="toggleModule(this)">
+              <div class="module-title">
+                ${moduleName}
+                <span class="module-tag ${tag}">${tagText}</span>
+              </div>
+              <div class="module-actions">
+                <span class="chevron">▼</span>
+              </div>
+            </div>
+            <div class="routes">
+              ${moduleRoutes.map((route, idx) => buildRouteElement(route, moduleName, idx)).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function buildRouteElement(route, moduleName, idx) {
+      return `
+        <div class="route" id="route-${moduleName}-${idx}">
+          <span class="route-method ${getMethodClass(route.method)}">${route.method}</span>
+          <span class="route-path">${route.path}</span>
+          <div class="route-actions">
+            <button class="${route.auth === 'public' ? '' : (route.admin ? 'danger' : 'secondary')}"
+              onclick="executeRoute('${moduleName}', ${idx})">
+              Test
+            </button>
+          </div>
+          <pre class="route-result"></pre>
+        </div>
+      `;
+    }
+
+    function toggleModule(header) {
+      header.classList.toggle('collapsed');
+      header.closest('.module').classList.toggle('collapsed');
+    }
+
+    async function getFirstAssetId(baseUrl) {
+      try {
+        const res = await fetch(`${baseUrl}/assets`);
+        const data = await res.json();
+        return Array.isArray(data) && data.length > 0 ? data[0].id : null;
+      } catch {
+        return null;
+      }
+    }
+
+    async function getFirstPositionId(baseUrl, token) {
+      try {
+        const res = await fetch(`${baseUrl}/positions`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        return Array.isArray(data) && data.length > 0 ? data[0].id : null;
+      } catch {
+        return null;
+      }
+    }
+
+    async function executeRoute(moduleName, idx) {
+      const grouped = routeDefinitions.filter(r => r.module === moduleName);
+      const targetRoute = grouped[idx];
+
+      const el = document.getElementById(`route-${moduleName}-${idx}`);
+      const resultEl = el.querySelector('.route-result');
+      const baseUrl = baseUrlInput.value.replace(/\/+$/, '');
+
+      let path = targetRoute.path;
+      let body = targetRoute.body ? JSON.parse(JSON.stringify(targetRoute.body)) : null;
+
+      let token = targetRoute.admin ? adminTokenInput.value : jwtTokenInput.value;
+
+      if (path.includes(':id')) {
+        let resolvedId = null;
+        if (moduleName === 'Assets') {
+          resolvedId = await getFirstAssetId(baseUrl);
+        } else if (moduleName === 'Positions') {
+          resolvedId = await getFirstPositionId(baseUrl, token);
+        }
+
+        if (!resolvedId) {
+          showResult(resultEl, { error: `Nenhum registro encontrado em ${moduleName} para extrair um ID automaticamente.` }, true);
+          return;
+        }
+        path = path.replace(':id', resolvedId);
+      }
+
+      if (body && body.assetId === 'AUTO') {
+        const assetId = await getFirstAssetId(baseUrl);
+        if (!assetId) {
+          showResult(resultEl, { error: "Cadastre um Ativo antes de tentar criar uma Posição." }, true);
+          return;
+        }
+        body.assetId = assetId;
+      }
+
+      const url = baseUrl + path;
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const options = { method: targetRoute.method, headers };
+      if (body && ['POST', 'PATCH', 'PUT'].includes(targetRoute.method)) {
+        options.body = JSON.stringify(body);
+      }
+
+      showResult(resultEl, null, false, true);
+
+      try {
+        const response = await fetch(url, options);
+        let data = {};
+        if (response.status !== 204) {
+          data = await response.json().catch(() => ({ status: response.status }));
+        } else {
+          data = { message: "Operação executada com sucesso (204 No Content)" };
+        }
+
+        if (response.ok && (path.includes('/auth/login') || path.includes('/auth/register')) && data.token) {
+          if (data.user?.role === 'ADMIN') {
+            adminTokenInput.value = data.token;
+          } else {
+            jwtTokenInput.value = data.token;
+          }
+          updateAuthStatus('connected', `Token obtido para ${data.user?.email || 'Usuário'} (${data.user?.role || 'USER'})`);
+        }
+
+        showResult(resultEl, data, !response.ok);
+      } catch (err) {
+        showResult(resultEl, { error: err.message }, true);
+      }
+    }
+
+    function showResult(resultEl, data, isError = false, isLoading = false) {
+      resultEl.className = 'route-result show';
+      if (isLoading) {
+        resultEl.classList.add('result-loading');
+        resultEl.textContent = 'Carregando...';
+        return;
+      }
+      resultEl.classList.add(isError ? 'result-error' : 'result-success');
+      resultEl.innerHTML = syntaxHighlight(JSON.stringify(data, null, 2));
+    }
+
+    function syntaxHighlight(json) {
+      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
+        let cls = 'json-number';
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) cls = 'json-key';
+          else cls = 'json-string';
+        } else if (/true|false/.test(match)) cls = 'json-boolean';
+        else if (/null/.test(match)) cls = 'json-null';
+        return `<span class="${cls}">${match}</span>`;
+      });
+    }
+
+    async function testAuth() {
+      const token = adminTokenInput.value || jwtTokenInput.value;
+      if (!token) {
+        updateAuthStatus('error', 'Nenhum token disponível');
+        return;
+      }
+
+      const baseUrl = baseUrlInput.value.replace(/\/+$/, '');
+      try {
+        const response = await fetch(`${baseUrl}/users/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          updateAuthStatus('connected', `Autenticado: ${data.user.email} (${data.user.role || 'USER'})`);
+        } else {
+          updateAuthStatus('error', `Falha na autenticação: HTTP ${response.status}`);
+        }
+      } catch (err) {
+        updateAuthStatus('error', `Erro de rede: ${err.message}`);
+      }
+    }
+
+    function updateAuthStatus(status, text) {
+      authDot.className = 'status-dot ' + (status === 'connected' ? 'connected' : 'error');
+      authText.textContent = text;
+    }
+
+    function clearResults() {
+      document.querySelectorAll('.route-result').forEach(el => {
+        el.className = 'route-result';
+        el.textContent = '';
+      });
+    }
+
+    renderModules();
+  </script>
+</body>
+</html>
